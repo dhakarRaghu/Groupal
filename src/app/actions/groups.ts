@@ -230,30 +230,24 @@ export const onGetGroupSubscriptions = async (groupId: string) => {
     return { status: 400, error: (error as Error).message };
   }
 };
-
-
 export const onGetAllGroupMembers = async (groupId: string) => {
   try {
     const user = await onAuthenticatedUser();
     const members = await client.members.findMany({
       where: {
         groupId: groupId,
-        NOT : {
-          userId: user.id
+        NOT: {
+          userId: user.id,
         },
       },
-
       include: {
         user: true,
-      }
+      },
     });
-    if(members && members.length > 0) {
-      return { status: 200, members: members };
-    }
-  }
-  catch (error) {
+    // Always return a value; if no members, return an empty array
+    return { status: 200, members: members && members.length > 0 ? members : [] };
+  } catch (error) {
     console.error("❌ Error fetching group members:", error);
-    return { status: 400, error: (error as Error).message };
+    return { status: 400, error: (error as Error).message, members: [] };
   }
-
-}
+};
