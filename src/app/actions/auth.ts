@@ -5,32 +5,34 @@ import { client } from "../../lib/prisma";
 
 export const onAuthenticatedUser = async () => {
   try {
-	const clerk = await currentUser();
-	if (!clerk) return { status: 404 };
+    const clerk = await currentUser();
+    if (!clerk) {
+      console.log("❌ No authenticated user found");
+      return { status: 404, message: "User not authenticated" };
+    }
 
-	const user = await client.user.findUnique({
-	  where: {
-		id: clerk.id,
-	  },
-	  select: {
-		id: true,
-		firstname: true,
-		lastname: true,
-	  },
-	});
+    console.log("📌 Clerk user ID:", clerk.id); // ✅ Debug Clerk user ID
 
-	if (user) {
-	  return {
-		status: 200,
-		id: user.id,
-		image: clerk.imageUrl,
-		username: `${user.firstname} ${user.lastname}`,
-	  };
-	}
+    // ✅ Check if user exists in the database
+    const user = await client.user.findUnique({
+      where: { id: clerk.id },
+      select: { id: true, firstname: true, lastname: true },
+    });
 
-	return { status: 404 };
+    if (user) {
+      console.log("✅ User found in database:", user);
+      return {
+        status: 200,
+        id: user.id,
+        image: clerk.imageUrl,
+        username: `${user.firstname} ${user.lastname}`,
+      };
+    } else {
+      console.log("⚠️ User not found in the database for ID:", clerk.id);
+      return { status: 404, message: "User not found in database" };
+    }
   } catch (error) {
-	console.error(error);
-	return { status: 500, message: 'Internal Server Error' };
+    console.error("❌ Database error:", error);
+    return { status: 500, message: "Internal Server Error" };
   }
 };
