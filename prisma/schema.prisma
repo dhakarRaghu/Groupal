@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,18 +7,245 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// User
+// ─────────────────────────────────────────────────────────────────────────────
 model User {
-  id          String   @id @default(uuid()) @db.Uuid
-  firstname   String
-  lastname    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstname String
+  lastname  String
+  createdAt DateTime @default(now())
+  clerkid   String
+  image     String?
+  stripeId  String?
+
+  // Relations
+  posts     Post[]
+  likes     Like[]
+  comments  Comment[]
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+
+  // A user can create many groups
+  groupsCreated Group[]
+
+  // A user can belong to many groups through the Members join table
+  members   Members[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Group
+// ─────────────────────────────────────────────────────────────────────────────
+model Group {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String        @unique
+  category        String
+  thumbnail       String?
+  description     String?
+  gallery         String[]
+  jsonDescription String?
+  htmlDescription String?
+  icon            String?
+  privacy         GROUP_PRIVACY @default(PRIVATE)
+  active          Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+
+  // One user "owns" or creates this group
+  userId  String @db.Uuid
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Many members can belong to this group
+  members   Members[]
+  channel   Channel[]
+  courses   Course[]
+  affiliate Affiliate?
+  domain    String?
+
+  // 1:1 relationship with Subscription
+  subscription Subscription?
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Members (join table for User ↔ Group)
+// ─────────────────────────────────────────────────────────────────────────────
+model Members {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+
+  user     User?   @relation(fields: [userId], references: [id])
+  userId   String? @db.Uuid
+
+  group    Group?  @relation(fields: [groupId], references: [id])
+  groupId  String? @db.Uuid
+
+  @@index([userId, groupId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Subscription (1:1 with Group)
+// ─────────────────────────────────────────────────────────────────────────────
+model Subscription {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+  price     Int?
+  active    Boolean  @default(false)
+
+  // To make it truly one-to-one, `groupId` must be unique.
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String? @unique @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Post
+// ─────────────────────────────────────────────────────────────────────────────
+model Post {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt   DateTime @default(now())
-  clerkid     String
-  image       String?
-  stripeId    String?
-  group       Group
-  membership  Membership
-  posts       Post[]
-  likes       Like[]
-  comments    Comment[]
-  message     String
+  title       String?
+  htmlContent String?
+  jsonContent String?
+  content     String
+
+  author    User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String  @db.Uuid
+
+  likes     Like[]
+  comments  Comment[]
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String  @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Like
+// ─────────────────────────────────────────────────────────────────────────────
+model Like {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String @db.Uuid
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Comment
+// ─────────────────────────────────────────────────────────────────────────────
+model Comment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt  DateTime  @default(now())
+  content    String
+
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String    @db.Uuid
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String    @db.Uuid
+
+  replied    Boolean?  @default(false)
+
+  // Self-relation for replies
+  reply      Comment[] @relation(name: "CommentToComment")
+  Comment    Comment?  @relation(name: "CommentToComment", fields: [commentId], references: [id])
+  commentId  String?   @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Channel
+// ─────────────────────────────────────────────────────────────────────────────
+model Channel {
+  id        String   @id @db.Uuid
+  name      String
+  icon      String
+  createdAt DateTime @default(now())
+
+  posts     Post[]
+  Group     Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String? @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Course
+// ─────────────────────────────────────────────────────────────────────────────
+model Course {
+  id          String   @id  @db.Uuid
+  name        String
+  thumbnail   String
+  published   Boolean  @default(false)
+  privacy     String
+  description String
+  createdAt   DateTime @default(now())
+
+  Group       Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId     String?  @db.Uuid
+
+  modules     Module[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module
+// ─────────────────────────────────────────────────────────────────────────────
+model Module {
+  id        String   @id @db.Uuid
+  title     String
+  createdAt DateTime @default(now())
+
+  Course    Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  String?  @db.Uuid
+
+  section   Section[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section
+// ─────────────────────────────────────────────────────────────────────────────
+model Section {
+  id          String   @id @db.Uuid
+  name        String   @default("New Section")
+  icon        String   @default("doc")
+  complete    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  Module      Module?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId    String?  @db.Uuid
+
+  content     String?
+  htmlContent String?
+  jsonContent String?
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Affiliate
+// ─────────────────────────────────────────────────────────────────────────────
+model Affiliate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+
+  Group     Group?   @relation(fields: [groupId], references: [id])
+  groupId   String?  @unique @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Message (sender/receiver both reference User)
+// ─────────────────────────────────────────────────────────────────────────────
+model Message {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message    String
+  createdAt  DateTime @default(now())
+
+  sender     User?    @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId   String?  @db.Uuid
+
+  receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId String?  @db.Uuid
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enum
+// ─────────────────────────────────────────────────────────────────────────────
+enum GROUP_PRIVACY {
+  PUBLIC
+  PRIVATE
 }
