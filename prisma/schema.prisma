@@ -11,7 +11,7 @@ datasource db {
 // User
 // ─────────────────────────────────────────────────────────────────────────────
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id 
   firstname String
   lastname  String
   createdAt DateTime @default(now())
@@ -37,7 +37,7 @@ model User {
 // Group
 // ─────────────────────────────────────────────────────────────────────────────
 model Group {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id              String        @id 
   name            String        @unique
   category        String
   thumbnail       String?
@@ -51,7 +51,7 @@ model Group {
   createdAt       DateTime      @default(now())
 
   // One user "owns" or creates this group
-  userId  String @db.Uuid
+  userId  String 
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Many members can belong to this group
@@ -73,10 +73,10 @@ model Members {
   createdAt DateTime @default(now())
 
   user     User?   @relation(fields: [userId], references: [id])
-  userId   String? @db.Uuid
+  userId   String? 
 
   group    Group?  @relation(fields: [groupId], references: [id])
-  groupId  String? @db.Uuid
+  groupId  String? 
 
   @@index([userId, groupId])
 }
@@ -92,7 +92,7 @@ model Subscription {
 
   // To make it truly one-to-one, `groupId` must be unique.
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId String? @unique @db.Uuid
+  groupId String? @unique 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,13 +107,13 @@ model Post {
   content     String
 
   author    User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId  String  @db.Uuid
+  authorId  String  
 
   likes     Like[]
   comments  Comment[]
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  channelId String  @db.Uuid
+  channelId String  
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ model Like {
   postId String @db.Uuid
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.Uuid
+  userId String 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ model Comment {
   postId     String    @db.Uuid
 
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String    @db.Uuid
+  userId     String    
 
   replied    Boolean?  @default(false)
 
@@ -156,14 +156,14 @@ model Comment {
 // Channel
 // ─────────────────────────────────────────────────────────────────────────────
 model Channel {
-  id        String   @id @db.Uuid
+  id        String   @id 
   name      String
   icon      String
   createdAt DateTime @default(now())
 
   posts     Post[]
   Group     Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId   String? @db.Uuid
+  groupId   String  
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ model Course {
   createdAt   DateTime @default(now())
 
   Group       Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId     String?  @db.Uuid
+  groupId     String?  
 
   modules     Module[]
 }
@@ -224,7 +224,7 @@ model Affiliate {
   createdAt DateTime @default(now())
 
   Group     Group?   @relation(fields: [groupId], references: [id])
-  groupId   String?  @unique @db.Uuid
+  groupId   String?  @unique 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -236,10 +236,10 @@ model Message {
   createdAt  DateTime @default(now())
 
   sender     User?    @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  senderId   String?  @db.Uuid
+  senderId   String?  
 
   receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-  receiverId String?  @db.Uuid
+  receiverId String?  
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

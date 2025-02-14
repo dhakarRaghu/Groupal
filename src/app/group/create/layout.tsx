@@ -13,12 +13,12 @@ const CreateGroupLayout = ({ children }: Props) => {
       {/* LEFT COLUMN */}
       <div className="flex flex-col justify-center items-start p-8 space-y-4">
         <BackdropGradient className="w-32 h-12 mb-4 opacity-80">
-          <h5 className="text-2xl font-bold text-themeTextWhite">
+          <h5 className="text-2xl font-bold text-themeTextWhite gap-4">
             Groupal.
           </h5>
         </BackdropGradient>
 
-        <GradientText element="H2" className="text-4xl font-semibold">
+        <GradientText element="H2" className=" py-6 text-4xl font-semibold">
           Create Your Group
         </GradientText>
 

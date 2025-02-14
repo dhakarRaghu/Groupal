@@ -3,7 +3,7 @@ CREATE TYPE "GROUP_PRIVACY" AS ENUM ('PUBLIC', 'PRIVATE');
 
 -- CreateTable
 CREATE TABLE "User" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "firstname" TEXT NOT NULL,
     "lastname" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -16,7 +16,7 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Group" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "category" TEXT NOT NULL,
     "thumbnail" TEXT,
@@ -28,7 +28,7 @@ CREATE TABLE "Group" (
     "privacy" "GROUP_PRIVACY" NOT NULL DEFAULT 'PRIVATE',
     "active" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "userId" UUID NOT NULL,
+    "userId" TEXT NOT NULL,
     "domain" TEXT,
 
     CONSTRAINT "Group_pkey" PRIMARY KEY ("id")
@@ -38,8 +38,8 @@ CREATE TABLE "Group" (
 CREATE TABLE "Members" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "userId" UUID,
-    "groupId" UUID,
+    "userId" TEXT,
+    "groupId" TEXT,
 
     CONSTRAINT "Members_pkey" PRIMARY KEY ("id")
 );
@@ -50,7 +50,7 @@ CREATE TABLE "Subscription" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "price" INTEGER,
     "active" BOOLEAN NOT NULL DEFAULT false,
-    "groupId" UUID,
+    "groupId" TEXT,
 
     CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
 );
@@ -63,7 +63,7 @@ CREATE TABLE "Post" (
     "htmlContent" TEXT,
     "jsonContent" TEXT,
     "content" TEXT NOT NULL,
-    "authorId" UUID NOT NULL,
+    "authorId" TEXT NOT NULL,
     "channelId" UUID NOT NULL,
 
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
@@ -74,7 +74,7 @@ CREATE TABLE "Like" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "postId" UUID NOT NULL,
-    "userId" UUID NOT NULL,
+    "userId" TEXT NOT NULL,
 
     CONSTRAINT "Like_pkey" PRIMARY KEY ("id")
 );
@@ -85,7 +85,7 @@ CREATE TABLE "Comment" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "content" TEXT NOT NULL,
     "postId" UUID NOT NULL,
-    "userId" UUID NOT NULL,
+    "userId" TEXT NOT NULL,
     "replied" BOOLEAN DEFAULT false,
     "commentId" UUID,
 
@@ -112,7 +112,7 @@ CREATE TABLE "Course" (
     "privacy" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "groupId" UUID,
+    "groupId" TEXT,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
 );
@@ -146,7 +146,7 @@ CREATE TABLE "Section" (
 CREATE TABLE "Affiliate" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "groupId" UUID,
+    "groupId" TEXT,
 
     CONSTRAINT "Affiliate_pkey" PRIMARY KEY ("id")
 );
