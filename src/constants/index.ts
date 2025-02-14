@@ -1,8 +1,10 @@
 
 import { LANDING_PAGE_MENU, MenuProps } from "./menus";
+import { CREATE_GROUP_PLACEHOLDER, CreateGroupPlaceholderProps } from "./placeholder";
 
 type GroupleConstantsProps = {
-    landingPageMenu : MenuProps[]
+    landingPageMenu : MenuProps[],
+    createGroupPlaceholder: CreateGroupPlaceholderProps[]
 }
 
 export const GROUPLE_CONSTANTS: GroupleConstantsProps = {
@@ -10,5 +12,5 @@ export const GROUPLE_CONSTANTS: GroupleConstantsProps = {
 //   signUpForm: "SIGN_UP_FORM",
 //   signInForm: "SIGN_IN_FORM",
 //   groupList: "GROUP_LIST",
-//   createGroupPlaceholder: "CREATE_GROUP_PLACEHOLDER"
+  createGroupPlaceholder: CREATE_GROUP_PLACEHOLDER
 };
