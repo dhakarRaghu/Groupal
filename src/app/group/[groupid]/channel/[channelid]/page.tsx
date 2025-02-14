@@ -1,6 +1,9 @@
 import { onGetChannelInfo } from "@/app/actions/channels";
 import { onGetGroupInfo } from "@/app/actions/groups";
 import { onAuthenticatedUser } from "@/app/actions/auth";
+import { currentUser } from "@clerk/nextjs/server";
+import { query } from "@";
+import { QueryClient } from "@tanstack/react-query";
 
 interface Props {
   params: {
@@ -11,33 +14,22 @@ interface Props {
 
 const GroupChannelPage = async (props : Props) => {
     const { params } = props;
-  const user = await onAuthenticatedUser();
+    const client = new QueryClient();
+    const user = await currentUser();
+    const authUser = await onAuthenticatedUser();
 
-  if (!user || user.status !== 200) {
-    return <div>Unauthorized. Please log in.</div>;
-  }
-console.log("user : " , user);
-  const channelInfo = await onGetChannelInfo(params.channelid);
-  const groupInfo = await onGetGroupInfo(params.groupid);
+    await client.prefetchQuery({
+        queryKey: ['channel-info'],
+        queryFn: () => onGetChannelInfo(params.channelid),
+    })
 
-  if (channelInfo.status !== 200 || !channelInfo.channel) {
-    return <div>Channel not found.</div>;
-  }
+    await client.prefetchQuery({
+        queryKey: ['about-group-info'],
+        queryFn: () => onGetGroupInfo(params.groupid),
+    })
 
-  return (
-    <div>
-      <h2>{channelInfo.channel.name} Channel</h2>
-      <p>Group: {groupInfo?.group?.name || "Unknown"}</p>
-      <h3>Recent Posts</h3>
-      <ul>
-        {channelInfo.channel.posts.map((post) => (
-          <li key={post.id}>
-            <strong>{post.author.firstname} {post.author.lastname}</strong>: {post.channel.name}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+    return <div>GroupChannelPage</div>
+  
 };
 
 export default GroupChannelPage;
